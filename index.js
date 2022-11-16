@@ -14,7 +14,16 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@clu
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 async function run() {
-    try { }
+    try {
+        const appointmentOptionsCollection = client.db('doctorsPortalDB').collection('appointmentOptions');
+
+        // appointment options [GET]
+        app.get('/appointmentOptions', async (req, res) => {
+            const query = {};
+            const options = await appointmentOptionsCollection.find(query).toArray();
+            res.send(options);
+        })
+    }
     finally { }
 }
 
