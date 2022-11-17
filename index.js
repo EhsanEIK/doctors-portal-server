@@ -96,6 +96,13 @@ async function run() {
             res.send(result);
         })
 
+        // users [GET]
+        app.get('/users', async (req, res) => {
+            const query = {};
+            const users = await usersCollection.find(query).toArray();
+            res.send(users);
+        })
+
         // users [POST]
         app.post('/users', async (req, res) => {
             const user = req.body;
