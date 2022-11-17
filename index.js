@@ -3,6 +3,7 @@ const express = require('express');
 const app = express();
 const port = process.env.PORT || 5000;
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 // middleware
@@ -18,6 +19,18 @@ async function run() {
         const appointmentOptionsCollection = client.db('doctorsPortalDB').collection('appointmentOptions');
         const bookingsCollection = client.db('doctorsPortalDB').collection('bookings');
         const usersCollection = client.db('doctorsPortalDB').collection('users');
+
+        // jwt
+        app.get('/jwt', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const user = await usersCollection.findOne(query);
+            if (user) {
+                const token = jwt.sign({ email }, process.env.ACCESS_TOKEN, { expiresIn: "1d" });
+                return res.send({ accessToken: token });
+            }
+            res.status(403).send({ message: "unauthorized access" });
+        })
 
         // appointment options [GET]
         app.get('/appointmentOptions', async (req, res) => {
