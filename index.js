@@ -157,6 +157,13 @@ async function run() {
             res.send(specialities);
         })
 
+        // doctors [GET]
+        app.get('/doctors', async (req, res) => {
+            const query = {};
+            const doctors = await doctorsCollection.find(query).toArray();
+            res.send(doctors);
+        })
+
         // doctors [POST]
         app.post('/doctors', async (req, res) => {
             const doctor = req.body;
