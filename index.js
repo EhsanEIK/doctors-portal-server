@@ -10,7 +10,7 @@ require('dotenv').config();
 app.use(cors());
 app.use(express.json());
 
-
+// verify JWT middleware
 function verifyJWT(req, res, next) {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
@@ -36,6 +36,17 @@ async function run() {
         const bookingsCollection = client.db('doctorsPortalDB').collection('bookings');
         const usersCollection = client.db('doctorsPortalDB').collection('users');
         const doctorsCollection = client.db('doctorsPortalDB').collection('doctors');
+
+        // verify admin middleware
+        async function verifyAdmin(req, res, next) {
+            const decodedEmail = req.decoded.email;
+            const query = { email: decodedEmail };
+            const user = await usersCollection.findOne(query);
+            if (user?.role !== 'admin') {
+                return res.status(403).send({ message: "forbidden access" });
+            }
+            next();
+        }
 
         // jwt
         app.get('/jwt', async (req, res) => {
@@ -98,15 +109,8 @@ async function run() {
         })
 
         // users [GET]
-        app.get('/users', verifyJWT, async (req, res) => {
-            let query = {};
-            const decodedEmail = req.decoded.email;
-            query = { email: decodedEmail };
-            const user = await usersCollection.findOne(query);
-            if (user?.role !== 'admin') {
-                return res.status(403).send({ message: "forbidden access" });
-            }
-            query = {};
+        app.get('/users', verifyJWT, verifyAdmin, async (req, res) => {
+            const query = {};
             const users = await usersCollection.find(query).toArray();
             res.send(users);
         })
@@ -127,15 +131,7 @@ async function run() {
         })
 
         // users admin role [PUT]
-        app.put('/users/admin/:id', verifyJWT, async (req, res) => {
-            // check the user is admin or not
-            const decodedEmail = req.decoded.email;
-            const query = { email: decodedEmail };
-            const user = await usersCollection.findOne(query);
-            if (user?.role !== 'admin') {
-                return res.status(403).send({ message: "forbidden access" });
-            }
-
+        app.put('/users/admin/:id', verifyJWT, verifyAdmin, async (req, res) => {
             // if the user is admin then continue the next code which is
             // make the user role admin
             const id = req.params.id;
@@ -158,21 +154,21 @@ async function run() {
         })
 
         // doctors [GET]
-        app.get('/doctors', async (req, res) => {
+        app.get('/doctors', verifyJWT, verifyAdmin, async (req, res) => {
             const query = {};
             const doctors = await doctorsCollection.find(query).toArray();
             res.send(doctors);
         })
 
         // doctors [POST]
-        app.post('/doctors', async (req, res) => {
+        app.post('/doctors', verifyJWT, verifyAdmin, async (req, res) => {
             const doctor = req.body;
             const result = await doctorsCollection.insertOne(doctor);
             res.send(result);
         })
 
         // doctors [DELETE]
-        app.delete('/doctors/:id', async (req, res) => {
+        app.delete('/doctors/:id', verifyJWT, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const result = await doctorsCollection.deleteOne(query);
