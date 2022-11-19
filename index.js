@@ -170,6 +170,14 @@ async function run() {
             const result = await doctorsCollection.insertOne(doctor);
             res.send(result);
         })
+
+        // doctors [DELETE]
+        app.post('/doctors/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await doctorsCollection.deleteOne(query);
+            res.send(result);
+        })
     }
     finally { }
 }
