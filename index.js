@@ -157,6 +157,12 @@ async function run() {
             res.send(specialities);
         })
 
+        // doctors [POST]
+        app.post('/doctors', async (req, res) => {
+            const doctor = req.body;
+            const result = await doctorsCollection.insertOne(doctor);
+            res.send(result);
+        })
     }
     finally { }
 }
