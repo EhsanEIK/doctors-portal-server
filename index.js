@@ -35,6 +35,7 @@ async function run() {
         const appointmentOptionsCollection = client.db('doctorsPortalDB').collection('appointmentOptions');
         const bookingsCollection = client.db('doctorsPortalDB').collection('bookings');
         const usersCollection = client.db('doctorsPortalDB').collection('users');
+        const doctorsCollection = client.db('doctorsPortalDB').collection('doctors');
 
         // jwt
         app.get('/jwt', async (req, res) => {
@@ -148,6 +149,14 @@ async function run() {
             const result = await usersCollection.updateOne(filter, updateDoc, options);
             res.send(result);
         })
+
+        // appointment specialty [GET]
+        app.use('/appointmentSpecialty', async (req, res) => {
+            const query = {};
+            const specialities = await appointmentOptionsCollection.find(query).project({ name: 1 }).toArray();
+            res.send(specialities);
+        })
+
     }
     finally { }
 }
