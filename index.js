@@ -37,6 +37,7 @@ async function run() {
         const bookingsCollection = client.db('doctorsPortalDB').collection('bookings');
         const usersCollection = client.db('doctorsPortalDB').collection('users');
         const doctorsCollection = client.db('doctorsPortalDB').collection('doctors');
+        const paymentsCollection = client.db('doctorsPortalDB').collection('payments');
 
         // verify admin middleware
         async function verifyAdmin(req, res, next) {
@@ -197,7 +198,7 @@ async function run() {
         // })
 
         // payment related works
-        app.post('/create-payment-intent', async (req, res) => {
+        app.post('/create-payment-intent', verifyJWT, async (req, res) => {
             const booking = req.body;
             const price = booking.price;
             const amount = price * 100;
@@ -211,6 +212,22 @@ async function run() {
             res.send({
                 clientSecret: paymentIntent.client_secret,
             })
+        })
+
+        // payments [POST]
+        app.post('/payments', verifyJWT, async (req, res) => {
+            const payment = req.body;
+            const result = await paymentsCollection.insertOne(payment);
+            const id = payment.bookingId;
+            const filter = { _id: ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    paid: true,
+                    transactionId: payment.transactionId,
+                }
+            };
+            const updateResult = await bookingsCollection.updateOne(filter, updateDoc);
+            res.send(result);
         })
     }
     finally { }
