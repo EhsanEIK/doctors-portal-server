@@ -5,6 +5,7 @@ const port = process.env.PORT || 5000;
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 // middleware
 app.use(cors());
@@ -194,6 +195,23 @@ async function run() {
         //     const result = await appointmentOptionsCollection.updateMany(query, updateDoc);
         //     res.send("successful")
         // })
+
+        // payment related works
+        app.post('/create-payment-intent', async (req, res) => {
+            const booking = req.body;
+            const price = booking.price;
+            const amount = price * 100;
+            const paymentIntent = await stripe.paymentIntents.create({
+                currency: "usd",
+                amount: amount,
+                "payment_method_types": [
+                    "card"
+                ],
+            });
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            })
+        })
     }
     finally { }
 }
