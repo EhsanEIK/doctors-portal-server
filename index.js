@@ -174,6 +174,18 @@ async function run() {
             const result = await doctorsCollection.deleteOne(query);
             res.send(result);
         })
+
+        // add price [GET] temporary use
+        // app.get('/addPrice', async (req, res) => {
+        //     const query = {};
+        //     const updateDoc = {
+        //         $set: {
+        //             price: 99,
+        //         }
+        //     }
+        //     const result = await appointmentOptionsCollection.updateMany(query, updateDoc);
+        //     res.send("successful")
+        // })
     }
     finally { }
 }
