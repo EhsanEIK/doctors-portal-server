@@ -89,6 +89,14 @@ async function run() {
             res.send(bookings);
         })
 
+        // bookings [GET-single data]
+        app.get('/bookings/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const booking = await bookingsCollection.findOne(query);
+            res.send(booking);
+        })
+
         // bookings [POST]
         app.post('/bookings', async (req, res) => {
             const booking = req.body;
