@@ -125,7 +125,7 @@ async function run() {
             res.send(users);
         })
 
-        // users admin [GET]
+        // users check admin [GET]
         app.get('/users/admin/:email', async (req, res) => {
             const email = req.params.email;
             const query = { email: email };
