@@ -4,6 +4,8 @@ const app = express();
 const port = process.env.PORT || 5000;
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
+const mg = require('nodemailer-mailgun-transport');
 require('dotenv').config();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
@@ -25,6 +27,39 @@ function verifyJWT(req, res, next) {
         req.decoded = decoded;
         next();
     })
+}
+
+// send email function
+function sendEmail(booking) {
+    const { email, treatment, appointmentDate, slot } = booking;
+
+    const auth = {
+        auth: {
+            api_key: process.env.EMAIL_SEND_KEY,
+            domain: process.env.EMAIL_SEND_DOMAIN,
+        }
+    }
+    const transporter = nodemailer.createTransport(mg(auth));
+
+    transporter.sendMail({
+        from: "gamerehsan17@gmail.com", // verified sender email
+        to: email, // recipient email
+        subject: `Your appointment for ${treatment} is confirmed`, // Subject line
+        text: `Your appointment is confirmed`, // plain text body
+        html: `
+        <h2>Your appointment has been booked for ${treatment}</h2>
+        <div>
+            <p>Please visit us on ${appointmentDate} at ${slot}</p>
+            <p>Thanks from Doctors Portal.</p>
+        </div>
+        `, // html body
+    }, function (error, info) {
+        if (error) {
+            console.log(error);
+        } else {
+            console.log('Email sent: ' + info);
+        }
+    });
 }
 
 // database work
@@ -115,6 +150,8 @@ async function run() {
             }
 
             const result = await bookingsCollection.insertOne(booking);
+            // send email
+            sendEmail(booking);
             res.send(result);
         })
 
